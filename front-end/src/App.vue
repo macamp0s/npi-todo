@@ -11,10 +11,24 @@ const input_name = ref ('')
 const input_content = ref ('')
 
 const addTodo = () => {
-
-
-  
+if (input_content.value.trim()===''||input_name.value.trim()===''){
+  return
 }
+todos.value.push({
+  name:input_name.value,
+  content:input_content.value,
+  done:false,
+  createdAt:new Date().getTime()
+})
+}
+
+const removeTodo = todo =>{
+  todos.value = todos.value.filter(t=> t !== todo)
+}
+
+watch(todos, newVal => {
+  localStorage.setItem('todos', JSON.stringify(newVal))
+}, {deep:true})
 
 const todos_asc = computed(() =>todos.value.sort((a, b) =>{
   return b.createdAt - a.createdAt
@@ -26,6 +40,7 @@ watch(name, (newVal)=>{
 
 onMounted(()=>{
   name.value=localStorage.getItem('name') || ''
+  todos.value=JSON.parse(localStorage.getItem('todos')) || []
 })
 
 </script>
@@ -52,11 +67,31 @@ onMounted(()=>{
       <input 
       type="text" 
       placeholder="ex: cenoura, batata, brócolis"
-      v-model="input_name"/>
+      v-model="input_content"/>
 
     <input type="submit" value="Add todo"/>
       </form>
     </section>
+    <section class="todo-list">
+      <h3>TODO LIST</h3>
+      <div class="list">
+        <div v-for="todo in todos_asc" :class="`todo-item ${todo.done && `done`}`">
+          
+
+          <div class="todo-content">
+            <input type="text" v-model="todo.name" />
+            <input type="text" v-model="todo.content" />
+          </div>
+
+          <div class="actions">
+            <button class="delete" @click="removeTodo(todo)">Delete</button>          
+          </div>
+        </div>
+      </div>
+
+
+    </section>
+ 
    </main>
   </div>
 
