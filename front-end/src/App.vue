@@ -14,17 +14,17 @@ const addTodo = () => {
     return
   }
   todos.value.push({
+    id: Date.now(),
     name: input_name.value,
     content: input_content.value,
     done: false,
-    createdAt: new Date().getTime()
   })
   input_name.value = ''
   input_content.value = ''
 }
 
 const removeTodo = todo => {
-  todos.value = todos.value.filter(t => t !== todo)
+  todos.value = todos.value.filter(t => t.id !== todo.id)
 }
 
 const detailsTodo = todo => {
@@ -48,7 +48,7 @@ const enableEdit = () => {
 }
 
 const saveEdit = () => {
-  const todoIndex = todos.value.findIndex(t => t.createdAt === selectedTodo.value.createdAt)
+  const todoIndex = todos.value.findIndex(t => t.id === selectedTodo.value.id)
   if (todoIndex !== -1) {
     todos.value[todoIndex].name = selectedTodo.value.name
     todos.value[todoIndex].content = selectedTodo.value.content
@@ -62,40 +62,27 @@ watch(todos, newVal => {
 }, { deep: true })
 
 const todos_asc = computed(() =>
-  todos.value.sort((a, b) => {
-    return b.createdAt - a.createdAt
-  })
+  todos.value.sort((a, b) => b.createdAt - a.createdAt)
 )
 
 onMounted(() => {
   todos.value = JSON.parse(localStorage.getItem('todos')) || []
 })
-
 </script>
 
 <template>
   <div>
     <main class="app">
       <section class="greeting">
-        <h2 class="title">
-          TO-DO LIST
-        </h2>
+        <h2 class="title">TO-DO LIST</h2>
       </section>
 
       <section class="create-todo">
         <form @submit.prevent="addTodo">
           <h4> Título do Item </h4>
-          <input 
-            type="text" 
-            placeholder="ex: comprar legumes" 
-            v-model="input_name" />
-
+          <input type="text" placeholder="ex: comprar legumes" v-model="input_name" />
           <h4> Descrição do Item</h4>
-          <input 
-            type="text" 
-            placeholder="ex: cenoura, batata, brócolis" 
-            v-model="input_content" />
-
+          <input type="text" placeholder="ex: cenoura, batata, brócolis" v-model="input_content" />
           <input type="submit" value="Add todo" />
         </form>
       </section>
@@ -103,7 +90,7 @@ onMounted(() => {
       <section class="todo-list">
         <h3>TODO LIST</h3>
         <div class="list">
-          <div v-for="todo in todos_asc" :class="`todo-item ${todo.done && 'done'}`" :key="todo.createdAt">
+          <div v-for="todo in todos_asc" :class="`todo-item ${todo.done && 'done'}`" :key="todo.id">
             <div class="todo-content">
               <input type="text" v-model="todo.name" />
               <input type="text" v-model="todo.content" />
@@ -127,10 +114,10 @@ onMounted(() => {
         <div>
           <label><strong>Title:</strong></label>
           <div v-if="isEditing">
-            <input type="text" v-model="selectedTodo.name" :disabled='false' />
+            <input type="text" v-model="selectedTodo.name" :disabled="false" />
           </div>
           <div v-else>
-            <input type="text" v-model="selectedTodo.content" :disabled='true'/>
+            <input type="text" v-model="selectedTodo.name" :disabled="true" />
           </div>
         </div>
 
@@ -138,24 +125,19 @@ onMounted(() => {
         <div>
           <label><strong>Description:</strong></label>
           <div v-if="isEditing">
-            <input type="text" v-model="selectedTodo.content" :disabled='false'/>
+            <input type="text" v-model="selectedTodo.content" :disabled="false" />
           </div>
           <div v-else>
-            <input type="text" v-model="selectedTodo.content" :disabled='true'/>
+            <input type="text" v-model="selectedTodo.content" :disabled="true" />
           </div>
         </div>
         
-
         <div class="modal-actions">
           <button v-if="!isEditing" @click="enableEdit">Editar</button>
-          <button v-if="isEditing" @click="saveEdit" >Salvar</button>
+          <button v-if="isEditing" @click="saveEdit">Salvar</button>
           <button @click="closeModal">Fechar</button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>
