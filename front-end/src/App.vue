@@ -15,7 +15,7 @@ const addTodo = () => {
   }
   todos.value.push({
     id: Date.now(),
-    name: input_name.value,
+    name: input_name.value, 
     content: input_content.value,
     done: false,
   })
