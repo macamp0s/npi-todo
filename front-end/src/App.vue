@@ -1,26 +1,22 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import api from './services/api';
+import TodoForm from './components/TodoForm.vue';
 
 const todos = ref([])
-const input_name = ref('')
-const input_content = ref('')
 const selectedTodo = ref(null) 
 const showModal = ref(false) 
 const isEditing = ref(false) 
 
-const addTodo = () => {
-  if (input_content.value.trim() === '' || input_name.value.trim() === '') {
-    alert('Preencha os dois campos e tente novamente.')
-    return
-  }
-  todos.value.push({
-    id: Date.now(),
-    name: input_name.value, 
-    content: input_content.value,
-    done: false,
-  })
-  input_name.value = ''
-  input_content.value = ''
+const fetchTodos = () => {
+  api.get("/api/todos")
+    .then(response => {
+      todos.value = response.data 
+      console.log(response.data)
+    })
+    .catch(error => {
+      console.error("Failed to fetch todos:", error)
+    })
 }
 
 const removeTodo = todo => {
@@ -57,16 +53,8 @@ const saveEdit = () => {
   showModal.value = false 
 }
 
-watch(todos, newVal => {
-  localStorage.setItem('todos', JSON.stringify(newVal))
-}, { deep: true })
-
-const todos_asc = computed(() =>
-  todos.value.sort((a, b) => b.createdAt - a.createdAt)
-)
-
 onMounted(() => {
-  todos.value = JSON.parse(localStorage.getItem('todos')) || []
+  fetchTodos() 
 })
 </script>
 
@@ -77,23 +65,16 @@ onMounted(() => {
         <h2 class="title">TO-DO LIST</h2>
       </section>
 
-      <section class="create-todo">
-        <form @submit.prevent="addTodo">
-          <h4> Título do Item </h4>
-          <input type="text" placeholder="ex: comprar legumes" v-model="input_name" />
-          <h4> Descrição do Item</h4>
-          <input type="text" placeholder="ex: cenoura, batata, brócolis" v-model="input_content" />
-          <input type="submit" value="Add todo" />
-        </form>
-      </section>
+      <TodoForm></TodoForm>
 
       <section class="todo-list">
         <h3>TODO LIST</h3>
         <div class="list">
-          <div v-for="todo in todos_asc" :class="`todo-item ${todo.done && 'done'}`" :key="todo.id">
+          <div v-for="todo in todos" :class="`todo-item`" :key="todo.id">
             <div class="todo-content">
-              <input type="text" v-model="todo.name" />
-              <input type="text" v-model="todo.content" />
+              <input type="text" v-model="todo.id" />
+              <input type="text" v-model="todo.title" />
+              <input type="text" v-model="todo.description" />
             </div>
 
             <div class="actions">
@@ -103,8 +84,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
-        {{ todos }}
       </section>
     </main>
 
